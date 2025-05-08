@@ -1,0 +1,2 @@
+Email: admin@example.com
+Password: NewAdminPass!456
