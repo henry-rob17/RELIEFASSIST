@@ -190,10 +190,78 @@ def tasks():
 @app.route("/task/new", methods=["GET","POST"])
 @app.route("/task/<int:task_id>/edit", methods=["GET","POST"])
 @role_required("manager")
-def task_form():
-    # (implementation omitted for brevity)
-    return redirect(url_for("tasks"))
+def task_form(task_id: int | None = None):
+    """
+    Create a new Task or update an existing one. Also maintains
+    TaskAssignment rows for the volunteer multi‑select.
+    """
+    # -------- fetch (for EDIT) ------------------------------------
+    record   = None
+    assigned = []          # volunteer_id list pre‑selected in the form
+    if task_id is not None:
+        res = query(
+            "SELECT * FROM Task WHERE task_id = %s",
+            (task_id,),
+        )
+        if res:
+            record = res[0]
+            assigned = [
+                r["volunteer_id"]
+                for r in query(
+                    "SELECT volunteer_id FROM TaskAssignment WHERE task_id = %s",
+                    (task_id,),
+                )
+            ]
+        else:
+            abort(404)
 
+    # -------- save (POST) ----------------------------------------
+    if request.method == "POST":
+        f = request.form
+        data = (
+            int(f["disaster_id"]),
+            int(f["center_id"]) if f.get("center_id") else None,
+            f["description"].strip(),
+            f.get("due_date") or None,
+            f["status"],
+        )
+
+        if record:  # UPDATE
+            execute(
+                "UPDATE Task SET disaster_id = %s, center_id = %s, description = %s, "
+                "due_date = %s, status = %s WHERE task_id = %s",
+                (*data, task_id),
+            )
+            execute("DELETE FROM TaskAssignment WHERE task_id = %s", (task_id,))
+            flash("Task updated", "success")
+        else:       # INSERT
+            execute(
+                "INSERT INTO Task (disaster_id, center_id, description, due_date, status) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                data,
+            )
+            task_id = DB.insert_id()           # grab the new PK
+            flash("Task created", "success")
+
+        # (re‑)insert volunteer assignments
+        for vid in f.getlist("volunteers"):
+            execute(
+                "INSERT INTO TaskAssignment (task_id, volunteer_id) VALUES (%s, %s)",
+                (task_id, int(vid)),
+            )
+
+        return redirect(url_for("tasks"))
+
+    # -------- render form (GET) ----------------------------------
+    return render_template(
+        "task_form.html",
+        task        = record,             # template expects “task”
+        disasters   = disasters_master(), # helpers you already have
+        centers     = centers(),
+        volunteers  = volunteers_master(),
+        assigned    = assigned,
+        today       = date.today(),
+    )
 # --------------------------------------------------------------------
 # Volunteer portal
 # --------------------------------------------------------------------
@@ -286,9 +354,53 @@ def users_list():
 
 @app.route("/resource/new", endpoint="resource_form", methods=["GET","POST"])
 @role_required("manager")
-def resource_form():
-    # (implementation omitted)
-    return redirect(url_for("resources_list"))
+def resource_form(cr_id: int | None = None):
+    """
+    Create a new CenterResource row or update an existing one.
+    """
+    # -------- fetch (for EDIT) ------------------------------------
+    record = None
+    if cr_id is not None:
+        rows = query(
+            "SELECT center_resource_id, center_id, resource_id, quantity_on_hand "
+            "FROM CenterResource WHERE center_resource_id = %s",
+            (cr_id,),
+        )
+        if not rows:
+            abort(404)
+        record = rows[0]
+
+    # -------- save (POST) ----------------------------------------
+    if request.method == "POST":
+        center_id        = request.form["center_id"]
+        resource_id      = request.form["resource_id"]
+        quantity_on_hand = request.form.get("quantity_on_hand", 0)
+
+        if record:  # UPDATE
+            execute(
+                "UPDATE CenterResource "
+                "SET center_id = %s, resource_id = %s, quantity_on_hand = %s "
+                "WHERE center_resource_id = %s",
+                (center_id, resource_id, quantity_on_hand, cr_id),
+            )
+            flash("Resource entry updated", "success")
+        else:       # INSERT
+            execute(
+                "INSERT INTO CenterResource (center_id, resource_id, quantity_on_hand) "
+                "VALUES (%s, %s, %s)",
+                (center_id, resource_id, quantity_on_hand),
+            )
+            flash("Resource entry created", "success")
+
+        return redirect(url_for("resources_list"))
+
+    # -------- render form (GET) ----------------------------------
+    return render_template(
+        "resource_form.html",
+        record    = record,             # **rename in template if still “rec”**
+        centers   = centers(),          # helper you already have
+        resources = resources_master(), # helper you already have
+    )
 
 @app.route("/volunteers")
 @role_required("manager")
