@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h3>All Users</h3>
+<table class="table table-striped">
+  <thead>
+    <tr><th>Email</th><th>Role</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.email }}</td>
+        <td>{{ u.role }}</td>
+        <td>
+          <!-- Remove user button -->
+          <form method="post" action="{{ url_for('remove_user', user_id=u.user_id) }}" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-danger"
+                    onclick="return confirm('Remove user {{ u.email }}?');">
+              Remove
+            </button>
+          </form>
+          <!-- Change role dropdown -->
+          <form method="post" action="{{ url_for('change_user_role', user_id=u.user_id) }}" class="d-inline">
+            <select name="new_role" class="form-select form-select-sm d-inline w-auto">
+              {% for r in ['admin','manager','volunteer','donor','public'] %}
+                <option value="{{ r }}" {% if u.role == r %}selected{% endif %}>
+                  {{ r.capitalize() }}
+                </option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-secondary">Change Role</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

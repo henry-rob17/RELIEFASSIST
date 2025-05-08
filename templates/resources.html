@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h3>Resources Inventory</h3>
+  {% if current_user.is_authenticated and (current_user.role == 'admin' or current_user.role == 'manager') %}
+    <a href="{{ url_for('resource_form') }}" class="btn btn-success">+ Add</a>
+  {% endif %}
+</div>
+
+
+<table class="table table-hover mt-3">
+  <thead>
+    <tr>
+      <th>Center</th><th>Resource</th><th>Qty on Hand</th><th>Capacity</th><th>Load</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in resources %}
+      <tr>
+        <td>{{ r.center }}</td>
+        <td>{{ r.resource_type }}</td>
+        <td>{{ r.quantity_on_hand }}</td>
+        <td>{{ r.capacity }}</td>
+        <td>{{ r.current_load }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5">No inventory yet</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

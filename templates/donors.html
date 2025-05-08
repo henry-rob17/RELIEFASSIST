@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <h3>Donors</h3>
+
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Gifts</th>
+        <th>Total Cash</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in donors %}
+        <tr>
+          <td>
+            <a href="{{ url_for('donor_detail_manager', donor_id=d.donor_id) }}">{{ d.donor }}</a>
+          </td>
+          <td>{{ d.phone or '—' }}</td>
+          <td>{{ d.gifts }}</td>
+          <td>${{ '%.2f'|format(d.cash_total) }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="4">No donors yet</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

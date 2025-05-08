@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <h3>{{ volunteer.vname }} – Assigned Tasks</h3>
+  <p class="text-muted">{{ volunteer.skills }}</p>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Disaster</th>
+        <th>Center</th>
+        <th>Due</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tasks %}
+        <tr>
+          <td>{{ t.description }}</td>
+          <td>{{ t.disaster }}</td>
+          <td>{{ t.center or '—' }}</td>
+          <td>{{ t.due_date or '—' }}</td>
+          <td>{{ t.status }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="5">No tasks assigned</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <a href="{{ url_for('volunteers') }}" class="btn btn-secondary">Back to list</a>
+{% endblock %}

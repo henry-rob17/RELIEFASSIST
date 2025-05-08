@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3>Active Disasters</h3>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th><th>Location</th><th>Started</th><th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in disasters %}
+      <tr>
+        <td>
+          <a href="{{ url_for('disaster_form', disaster_id=d.disaster_id) }}">
+            {{ d.name }}
+          </a>
+        </td>
+        <td>{{ d.location }}</td>
+        <td>{{ d.start_date }}</td>
+        <td>{{ d.status }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4">No open disasters 🤞</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

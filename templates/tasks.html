@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center">
+    <h3>Tasks</h3>
+    <a href="{{ url_for('task_form') }}" class="btn btn-success">+ New</a>
+  </div>
+
+  <table class="table table-hover mt-3">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Disaster</th>
+        <th>Center</th>
+        <th>Due</th>
+        <th>Status</th>
+        <th>Volunteers</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tasks %}
+        <tr>
+          <td>{{ t.description }}</td>
+          <td>{{ t.disaster }}</td>
+          <td>{{ t.center or '—' }}</td>
+          <td>{{ t.due_date or '—' }}</td>
+          <td>{{ t.status }}</td>
+          <td>{{ t.volunteers }}</td>
+          <td>
+            <a href="{{ url_for('task_form', task_id=t.task_id) }}" class="btn btn-sm btn-primary">Edit</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
